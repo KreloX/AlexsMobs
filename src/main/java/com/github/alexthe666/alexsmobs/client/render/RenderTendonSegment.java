@@ -7,7 +7,6 @@ import com.github.alexthe666.alexsmobs.item.AMItemRegistry;
 import com.github.alexthe666.alexsmobs.misc.AMBlockPos;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.VertexMultiConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -58,7 +57,7 @@ public class RenderTendonSegment extends EntityRenderer<EntityTendonSegment> {
             Vec3 currentNeckButt = from;
             VertexConsumer neckConsumer;
             if(entity.hasGlint()){
-                neckConsumer = VertexMultiConsumer.create(buffer.getBuffer(AMRenderTypes.entityGlintDirect()), buffer.getBuffer(RenderType.entityCutoutNoCull(RenderMurmurBody.TEXTURE)));
+                neckConsumer = AMRenderTypes.createMergedVertexConsumer(buffer.getBuffer(AMRenderTypes.entityGlintDirect()), buffer.getBuffer(RenderType.entityCutoutNoCull(RenderMurmurBody.TEXTURE)));
             }else{
                 neckConsumer = buffer.getBuffer(RenderType.entityCutoutNoCull(RenderMurmurBody.TEXTURE));
             }
@@ -78,7 +77,7 @@ public class RenderTendonSegment extends EntityRenderer<EntityTendonSegment> {
             ModelMurmurNeck.THIN = false;
             VertexConsumer clawConsumer;
             if(entity.hasGlint()){
-                clawConsumer = VertexMultiConsumer.create(buffer.getBuffer(AMRenderTypes.entityGlintDirect()), buffer.getBuffer(RenderType.entityCutoutNoCull(CLAW_TEXTURE)));
+                clawConsumer = AMRenderTypes.createMergedVertexConsumer(buffer.getBuffer(AMRenderTypes.entityGlintDirect()), buffer.getBuffer(RenderType.entityCutoutNoCull(CLAW_TEXTURE)));
             }else{
                 clawConsumer = buffer.getBuffer(RenderType.entityCutoutNoCull(CLAW_TEXTURE));
             }

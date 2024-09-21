@@ -193,7 +193,7 @@ public class AMConfig {
     public static boolean bananasDropFromLeaves = true;
     public static boolean acaciaBlossomsDropFromLeaves = true;
     public static int bananaChance = 200;
-    public static int blossomChance = 130;
+    public static int acaciaBlossomChance = 130;
     public static boolean neutralBoneSerpents = false;
     public static boolean spidersAttackFlies = true;
     public static boolean wolvesAttackMoose = true;
@@ -205,6 +205,7 @@ public class AMConfig {
     public static boolean mimicreamRepair = true;
     public static List<? extends String> mimicreamBlacklist = Lists.newArrayList("alexsmobs:blood_sprayer", "alexsmobs:hemolymph_blaster");
     public static boolean raccoonsStealFromChests = true;
+    public static boolean crowsStealCrops = true;
     public static boolean fishOilMeme = true;
     public static double elephantTraderSpawnChance = 0.6F;
     public static boolean limitElephantTraderBiomes = true;
@@ -266,6 +267,7 @@ public class AMConfig {
     public static double transmutingWeightAddStep = 3;
     public static double transmutingWeightRemoveStep = 4;
     public static double underminerDisappearDistance = 8;
+    public static int pathfindingThreads = 5;
 
     public static void bake(ModConfig config) {
         try {
@@ -466,7 +468,9 @@ public class AMConfig {
             mimicreamBlacklist = (List<? extends String>) ConfigHolder.COMMON.mimicreamBlacklist.get();
             fishOilMeme = ConfigHolder.COMMON.fishOilMeme.get();
             raccoonsStealFromChests = ConfigHolder.COMMON.raccoonStealFromChests.get();
+            crowsStealCrops = ConfigHolder.COMMON.crowsStealCrops.get();
             acaciaBlossomsDropFromLeaves = ConfigHolder.COMMON.acaciaBlossomsDropFromLeaves.get();
+            acaciaBlossomChance = ConfigHolder.COMMON.acaciaBlossomChance.get();
             soulVultureSpawnOnFossil = ConfigHolder.COMMON.soulVultureSpawnOnFossil.get();
             wanderingTraderOffers = ConfigHolder.COMMON.wanderingTraderOffers.get();
             mungusBiomeTransformationType = ConfigHolder.COMMON.mungusBiomeTransformationType.get();
@@ -515,6 +519,7 @@ public class AMConfig {
             transmutingWeightAddStep = ConfigHolder.COMMON.transmutingWeightAddStep.get();
             transmutingWeightRemoveStep = ConfigHolder.COMMON.transmutingWeightRemoveStep.get();
             underminerDisappearDistance = ConfigHolder.COMMON.underminerDisappearDistance.get();
+            pathfindingThreads = ConfigHolder.COMMON.pathfindingThreads.get();
         } catch (Exception e) {
             AlexsMobs.LOGGER.warn("An exception was caused trying to load the config for Alex's Mobs.");
             e.printStackTrace();

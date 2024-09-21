@@ -3,7 +3,6 @@ package com.github.alexthe666.alexsmobs.entity;
 import com.github.alexthe666.alexsmobs.config.AMConfig;
 import com.github.alexthe666.alexsmobs.entity.ai.AnimalAISwimBottom;
 import com.github.alexthe666.alexsmobs.entity.ai.AquaticMoveController;
-import com.github.alexthe666.alexsmobs.entity.util.Maths;
 import com.github.alexthe666.alexsmobs.item.AMItemRegistry;
 import com.github.alexthe666.alexsmobs.misc.AMTagRegistry;
 import net.minecraft.core.BlockPos;
@@ -97,7 +96,7 @@ public class EntityCatfish extends WaterAnimal implements FlyingAnimal, Bucketab
         this.goalSelector.addGoal(1, new TryFindWaterGoal(this));
         this.goalSelector.addGoal(2, new PanicGoal(this, 1D));
         this.goalSelector.addGoal(3, new TargetFoodGoal(this));
-        this.goalSelector.addGoal(4, new TemptGoal(this, 1.0D, Ingredient.of(Items.SEA_LANTERN), false));
+        this.goalSelector.addGoal(4, new TemptGoal(this, 1.0D, Ingredient.of(AMTagRegistry.CATFISH_ITEM_FASCINATIONS), false));
         this.goalSelector.addGoal(5, new FascinateLanternGoal(this));
         this.goalSelector.addGoal(6, new AnimalAISwimBottom(this, 1F, 7));
     }
@@ -530,7 +529,7 @@ public class EntityCatfish extends WaterAnimal implements FlyingAnimal, Bucketab
 
     private boolean isFood(Entity entity) {
         if (this.getCatfishSize() == 2) {
-            return entity instanceof Mob && !(entity instanceof EntityCatfish) && entity.getBbHeight() <= 1.0F;
+            return !entity.getType().is(AMTagRegistry.CATFISH_IGNORE_EATING) && entity instanceof Mob && !(entity instanceof EntityCatfish) && entity.getBbHeight() <= 1.0F;
         } else {
             return entity instanceof ItemEntity && ((ItemEntity) entity).getAge() > 35;
         }
@@ -699,7 +698,7 @@ public class EntityCatfish extends WaterAnimal implements FlyingAnimal, Bucketab
         }
 
         private boolean isSeaLantern(Level world, BlockPos.MutableBlockPos pos) {
-            return world.getBlockState(pos).is(Blocks.SEA_LANTERN);
+            return world.getBlockState(pos).is(AMTagRegistry.CATFISH_BLOCK_FASCINATIONS);
         }
     }
 }

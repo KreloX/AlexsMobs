@@ -27,7 +27,6 @@ import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
@@ -78,7 +77,7 @@ public class EntitySkunk extends Animal {
                 EntitySkunk.this.harassedTime += 10;
             }
         });
-        this.goalSelector.addGoal(3, new TemptGoal(this, 1.1D, Ingredient.of(Items.SWEET_BERRIES), false));
+        this.goalSelector.addGoal(3, new TemptGoal(this, 1.1D, Ingredient.of(AMTagRegistry.SKUNK_BREEDABLES), false));
         this.goalSelector.addGoal(2, new BreedGoal(this, 1.0D));
         this.goalSelector.addGoal(4, new RandomStrollGoal(this, 1D, 60));
         this.goalSelector.addGoal(5, new FollowParentGoal(this, 1D));
@@ -107,7 +106,7 @@ public class EntitySkunk extends Animal {
     }
 
     public boolean isFood(ItemStack stack) {
-        return stack.is(Items.SWEET_BERRIES);
+        return stack.is(AMTagRegistry.SKUNK_BREEDABLES);
     }
 
     public float getSprayYaw() {
@@ -281,8 +280,9 @@ public class EntitySkunk extends Animal {
                             pos = AMBlockPos.fromVec3(hitResult.getLocation());
                             dir = Direction.UP;
                         }
+                        BlockState currentState = level().getBlockState(pos);
                         BlockState sprayState = ((MultifaceBlock) AMBlockRegistry.SKUNK_SPRAY.get()).getStateForPlacement(level().getBlockState(pos), level(), pos, dir);
-                        if (sprayState != null && sprayState.is(AMBlockRegistry.SKUNK_SPRAY.get())) {
+                        if ((currentState.isAir() || currentState.canBeReplaced()) && sprayState != null && sprayState.is(AMBlockRegistry.SKUNK_SPRAY.get())) {
                             level().setBlockAndUpdate(pos, sprayState);
                         }
                         double sprayDist = hitResult.getLocation().subtract(skunkPos).length() / maxSprayDist;

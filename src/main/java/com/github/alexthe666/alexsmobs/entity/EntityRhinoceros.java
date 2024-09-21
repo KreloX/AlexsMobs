@@ -1,11 +1,9 @@
 package com.github.alexthe666.alexsmobs.entity;
 
 import com.github.alexthe666.alexsmobs.config.AMConfig;
-import com.github.alexthe666.alexsmobs.entity.ai.AnimalAIHurtByTargetNotBaby;
-import com.github.alexthe666.alexsmobs.entity.ai.AnimalAIPanicBaby;
-import com.github.alexthe666.alexsmobs.entity.ai.AnimalAIWanderRanged;
-import com.github.alexthe666.alexsmobs.entity.ai.GroundPathNavigatorWide;
+import com.github.alexthe666.alexsmobs.entity.ai.*;
 import com.github.alexthe666.alexsmobs.misc.AMSoundRegistry;
+import com.github.alexthe666.alexsmobs.misc.AMTagRegistry;
 import com.github.alexthe666.citadel.animation.Animation;
 import com.github.alexthe666.citadel.animation.AnimationHandler;
 import com.github.alexthe666.citadel.animation.IAnimatedEntity;
@@ -39,7 +37,6 @@ import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.raid.Raider;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
@@ -56,8 +53,12 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public class EntityRhinoceros extends Animal implements IAnimatedEntity {
 
@@ -84,7 +85,6 @@ public class EntityRhinoceros extends Animal implements IAnimatedEntity {
     public static AttributeSupplier.Builder bakeAttributes() {
         return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 60.0D).add(Attributes.ATTACK_DAMAGE, 8.0D).add(Attributes.FOLLOW_RANGE, 32.0D).add(Attributes.MOVEMENT_SPEED, 0.25F).add(Attributes.ARMOR, 12.0D).add(Attributes.ARMOR_TOUGHNESS, 4.0D).add(Attributes.KNOCKBACK_RESISTANCE, 0.9D).add(Attributes.ATTACK_KNOCKBACK, 2.0D);
     }
-
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
@@ -103,7 +103,7 @@ public class EntityRhinoceros extends Animal implements IAnimatedEntity {
         this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.4D, true));
         this.goalSelector.addGoal(2, new AnimalAIPanicBaby(this, 1.25D));
         this.goalSelector.addGoal(3, new BreedGoal(this, 1.0D));
-        this.goalSelector.addGoal(4, new TemptGoal(this, 1.0D, Ingredient.of(Items.WHEAT, Items.POTION), false));
+        this.goalSelector.addGoal(4, new TemptGoal(this, 1.0D, Ingredient.fromValues(Stream.of(new Ingredient.TagValue(AMTagRegistry.RHINOCEROS_FOODSTUFFS), new Ingredient.TagValue(AMTagRegistry.RHINOCEROS_BREEDABLES))), false));
         this.goalSelector.addGoal(5, new FollowParentGoal(this, 1.1D));
         this.goalSelector.addGoal(6, new AnimalAIWanderRanged(this, 90, 1.0D, 18, 7));
         this.goalSelector.addGoal(7, new StrollGoal(200));
@@ -122,7 +122,7 @@ public class EntityRhinoceros extends Animal implements IAnimatedEntity {
     }
 
     protected PathNavigation createNavigation(Level worldIn) {
-        return new GroundPathNavigatorWide(this, worldIn);
+        return new AdvancedPathNavigateNoTeleport(this, worldIn, true);
     }
 
     public boolean checkSpawnRules(LevelAccessor worldIn, MobSpawnType spawnReasonIn) {
@@ -217,8 +217,7 @@ public class EntityRhinoceros extends Animal implements IAnimatedEntity {
     }
 
     public boolean isFood(ItemStack stack) {
-        Item item = stack.getItem();
-        return item == Items.DEAD_BUSH || item == Items.GRASS;
+        return stack.is(AMTagRegistry.RHINOCEROS_BREEDABLES);
     }
 
     public String getAppliedPotionId() {
@@ -435,7 +434,7 @@ public class EntityRhinoceros extends Animal implements IAnimatedEntity {
                 }
                 return InteractionResult.SUCCESS;
             }
-        }else if(itemstack.getItem() == Items.WHEAT && !trusts(player.getUUID())){
+        } else if (itemstack.is(AMTagRegistry.RHINOCEROS_FOODSTUFFS) && !trusts(player.getUUID())) {
             addTrustedUUID(player.getUUID());
             this.usePlayerItem(player, hand, itemstack);
             this.gameEvent(GameEvent.EAT);

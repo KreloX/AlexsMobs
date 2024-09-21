@@ -1,6 +1,7 @@
 package com.github.alexthe666.alexsmobs.block;
 
 import com.github.alexthe666.alexsmobs.effect.AMEffectRegistry;
+import com.github.alexthe666.alexsmobs.misc.AMTagRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -77,22 +78,22 @@ public class BlockHummingbirdFeeder extends Block {
         ItemStack itemStack = player.getItemInHand(handIn);
         int setContent = -1;
         if(contents == 0){
-            if(itemStack.getItem() == Items.SUGAR){
+            if(itemStack.is(AMTagRegistry.HUMMINGNBIRD_FEEDER_SWEETENERS)){
                 setContent = 2;
-                useItem(player, itemStack);
+                useItem(player, itemStack, false);
             }else if(itemStack.getItem() == waterBottle.getItem() && ItemStack.isSameItemSameTags(waterBottle, itemStack)){
                 setContent = 1;
-                useItem(player, itemStack);
+                useItem(player, itemStack, true);
             }
         }else if(contents == 1){
-            if(itemStack.getItem() == Items.SUGAR){
+            if(itemStack.is(AMTagRegistry.HUMMINGNBIRD_FEEDER_SWEETENERS)){
                 setContent = 3;
-                useItem(player, itemStack);
+                useItem(player, itemStack, false);
             }
         }else if(contents == 2){
             if(itemStack.getItem() == waterBottle.getItem() && ItemStack.isSameItemSameTags(waterBottle, itemStack)){
                 setContent = 3;
-                useItem(player, itemStack);
+                useItem(player, itemStack, true);
             }
         }
         if(setContent >= 0){
@@ -102,10 +103,10 @@ public class BlockHummingbirdFeeder extends Block {
         return InteractionResult.FAIL;
     }
 
-    public void useItem(Player playerEntity, ItemStack stack){
+    public void useItem(Player playerEntity, ItemStack stack, boolean dropBottle){
         if(!playerEntity.isCreative()){
-            if(stack.hasCraftingRemainingItem()){
-                playerEntity.addItem(stack.getCraftingRemainingItem().copy());
+            if(dropBottle){
+                playerEntity.addItem(new ItemStack(Items.GLASS_BOTTLE));
             }
             stack.shrink(1);
         }

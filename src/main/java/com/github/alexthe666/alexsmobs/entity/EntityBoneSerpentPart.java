@@ -1,7 +1,6 @@
 package com.github.alexthe666.alexsmobs.entity;
 
 import com.github.alexthe666.alexsmobs.AlexsMobs;
-import com.github.alexthe666.alexsmobs.entity.util.Maths;
 import com.github.alexthe666.alexsmobs.message.MessageHurtMultipart;
 import com.google.common.collect.ImmutableList;
 import net.minecraft.nbt.CompoundTag;
@@ -64,6 +63,12 @@ public class EntityBoneSerpentPart extends LivingEntity implements IHurtableMult
             return super.startRiding(entityIn);
         }
         return false;
+    }
+
+    @Nullable
+    public ItemStack getPickResult() {
+        Entity parent = this.getParent();
+        return parent != null ? parent.getPickResult() : ItemStack.EMPTY;
     }
 
     public static AttributeSupplier.Builder bakeAttributes() {

@@ -3,7 +3,6 @@ package com.github.alexthe666.alexsmobs.entity;
 import com.github.alexthe666.alexsmobs.config.AMConfig;
 import com.github.alexthe666.alexsmobs.entity.ai.*;
 import com.github.alexthe666.alexsmobs.entity.util.Maths;
-import com.github.alexthe666.alexsmobs.item.AMItemRegistry;
 import com.github.alexthe666.alexsmobs.misc.AMAdvancementTriggerRegistry;
 import com.github.alexthe666.alexsmobs.misc.AMSoundRegistry;
 import com.github.alexthe666.alexsmobs.misc.AMTagRegistry;
@@ -140,7 +139,7 @@ public class EntityElephant extends TamableAnimal implements ITargetsDroppedItem
     }
 
     public static AttributeSupplier.Builder bakeAttributes() {
-        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 65.0D).add(Attributes.FOLLOW_RANGE, 32.0D).add(Attributes.KNOCKBACK_RESISTANCE, 0.9F).add(Attributes.ATTACK_DAMAGE, 10.0D).add(Attributes.MOVEMENT_SPEED, 0.35F);
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 85.0D).add(Attributes.FOLLOW_RANGE, 32.0D).add(Attributes.KNOCKBACK_RESISTANCE, 0.9F).add(Attributes.ATTACK_DAMAGE, 10.0D).add(Attributes.MOVEMENT_SPEED, 0.35F);
     }
 
     @Nullable
@@ -185,7 +184,7 @@ public class EntityElephant extends TamableAnimal implements ITargetsDroppedItem
     }
 
     protected PathNavigation createNavigation(Level worldIn) {
-        return new GroundPathNavigatorWide(this, worldIn);
+        return new AdvancedPathNavigateNoTeleport(this, worldIn, true);
     }
 
     public int getMaxHeadYRot() {
@@ -204,7 +203,7 @@ public class EntityElephant extends TamableAnimal implements ITargetsDroppedItem
         this.goalSelector.addGoal(2, new EntityElephant.PanicGoal());
         this.goalSelector.addGoal(2, new ElephantAIVillagerRide(this, 1D));
         this.goalSelector.addGoal(3, new BreedGoal(this, 1.0D));
-        this.goalSelector.addGoal(4, new TemptGoal(this, 1.0D, Ingredient.of(AMItemRegistry.ACACIA_BLOSSOM.get()), false));
+        this.goalSelector.addGoal(4, new TemptGoal(this, 1.0D, Ingredient.of(AMTagRegistry.ELEPHANT_TAMEABLES), false));
         this.goalSelector.addGoal(5, new ElephantAIForageLeaves(this));
         this.goalSelector.addGoal(6, new FollowParentGoal(this, 1D));
         this.goalSelector.addGoal(7, new ElephantAIFollowCaravan(this, 0.5D));
@@ -218,7 +217,7 @@ public class EntityElephant extends TamableAnimal implements ITargetsDroppedItem
 
     public boolean isFood(ItemStack stack) {
         Item item = stack.getItem();
-        return isTame() && item == AMItemRegistry.ACACIA_BLOSSOM.get();
+        return isTame() && stack.is(AMTagRegistry.ELEPHANT_BREEDABLES);
     }
 
     protected void playStepSound(BlockPos pos, BlockState state) {
@@ -315,7 +314,7 @@ public class EntityElephant extends TamableAnimal implements ITargetsDroppedItem
             }
             if (this.getAnimation() == ANIMATION_EAT && this.getAnimationTick() == 17) {
                 this.eatItemEffect(this.getMainHandItem());
-                if (this.getMainHandItem().getItem() == AMItemRegistry.ACACIA_BLOSSOM.get() && !this.isTame() && (!isTusked() || isBaby()) && blossomThrowerUUID != null) {
+                if (this.getMainHandItem().is(AMTagRegistry.ELEPHANT_TAMEABLES) && !this.isTame() && (!isTusked() || isBaby()) && blossomThrowerUUID != null) {
                     if (random.nextInt(3) == 0) {
                         this.setTame(true);
                         this.setOwnerUUID(blossomThrowerUUID);
@@ -524,7 +523,7 @@ public class EntityElephant extends TamableAnimal implements ITargetsDroppedItem
             rippedStack.setCount(1);
             stack.shrink(1);
             this.setItemInHand(InteractionHand.MAIN_HAND, rippedStack);
-            if (rippedStack.getItem() == AMItemRegistry.ACACIA_BLOSSOM.get()) {
+            if (rippedStack.is(AMTagRegistry.ELEPHANT_TAMEABLES)) {
                 blossomThrowerUUID = player.getUUID();
             }
             return InteractionResult.SUCCESS;
@@ -544,7 +543,7 @@ public class EntityElephant extends TamableAnimal implements ITargetsDroppedItem
                 return InteractionResult.SUCCESS;
             }
             return InteractionResult.PASS;
-        } else if (owner && this.getColor() != null && stack.getItem() == Items.SHEARS) {
+        } else if (owner && this.getColor() != null && stack.is(Tags.Items.SHEARS)) {
             this.gameEvent(GameEvent.ENTITY_INTERACT);
             this.playSound(SoundEvents.SHEEP_SHEAR, 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
             if (this.getColor() != null) {
@@ -560,7 +559,7 @@ public class EntityElephant extends TamableAnimal implements ITargetsDroppedItem
                 stack.shrink(1);
             }
             return InteractionResult.sidedSuccess(this.level().isClientSide);
-        } else if (owner && isChested() && stack.getItem() == Items.SHEARS) {
+        } else if (owner && isChested() && stack.is(Tags.Items.SHEARS)) {
             this.gameEvent(GameEvent.ENTITY_INTERACT);
             this.playSound(SoundEvents.SHEEP_SHEAR, 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
             this.spawnAtLocation(Blocks.CHEST);
@@ -813,11 +812,11 @@ public class EntityElephant extends TamableAnimal implements ITargetsDroppedItem
     public void setTusked(boolean tusked) {
         boolean prev = isTusked();
         if (!prev && tusked) {
-            this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(80.0D);
+            this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(110.0D);
             this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(15.0D);
             this.setHealth(150.0F);
         } else {
-            this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(65.0D);
+            this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(85.0D);
             this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(10.0D);
         }
         this.entityData.set(TUSKED, tusked);
@@ -825,7 +824,7 @@ public class EntityElephant extends TamableAnimal implements ITargetsDroppedItem
 
     @Override
     public boolean canTargetItem(ItemStack stack) {
-        return stack.is(AMTagRegistry.ELEPHANT_FOODSTUFFS) || stack.getItem() == AMItemRegistry.ACACIA_BLOSSOM.get();
+        return stack.is(AMTagRegistry.ELEPHANT_FOODSTUFFS);
     }
 
     @Override
@@ -836,7 +835,7 @@ public class EntityElephant extends TamableAnimal implements ITargetsDroppedItem
             this.spawnAtLocation(this.getItemInHand(InteractionHand.MAIN_HAND), 0.0F);
         }
         Entity itemThrower = e.getOwner();
-        if (duplicate.getItem() == AMItemRegistry.ACACIA_BLOSSOM.get() && itemThrower != null) {
+        if (duplicate.is(AMTagRegistry.ELEPHANT_TAMEABLES) && itemThrower != null) {
             blossomThrowerUUID = itemThrower.getUUID();
         } else {
             blossomThrowerUUID = null;
@@ -888,7 +887,7 @@ public class EntityElephant extends TamableAnimal implements ITargetsDroppedItem
     }
 
     public double getMaxDistToItem() {
-        return 5.0D;
+        return Math.pow(this.getBbWidth() + 3.0F, 2.0F);
     }
 
     public void positionRider(Entity passenger, Entity.MoveFunction moveFunc) {

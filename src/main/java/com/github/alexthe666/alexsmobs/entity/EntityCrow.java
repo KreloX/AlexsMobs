@@ -22,7 +22,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
@@ -45,11 +44,9 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
@@ -132,9 +129,8 @@ public class EntityCrow extends TamableAnimal implements ITargetsDroppedItems {
         return AMEntityRegistry.rollSpawn(AMConfig.crowSpawnRolls, this.getRandom(), spawnReasonIn);
     }
 
-    public static <T extends Mob> boolean canCrowSpawn(EntityType<EntityCrow> crow, LevelAccessor worldIn, MobSpawnType reason, BlockPos p_223317_3_, RandomSource random) {
-        final BlockState blockstate = worldIn.getBlockState(p_223317_3_.below());
-        return (blockstate.is(BlockTags.LEAVES) || blockstate.is(Blocks.GRASS_BLOCK) || blockstate.is(BlockTags.LOGS) || blockstate.is(Blocks.AIR)) && worldIn.getRawBrightness(p_223317_3_, 0) > 8;
+    public static <T extends Mob> boolean canCrowSpawn(EntityType<EntityCrow> crow, LevelAccessor worldIn, MobSpawnType reason, BlockPos pos, RandomSource random) {
+        return isBrightEnoughToSpawn(worldIn, pos);
     }
 
     public boolean isAlliedTo(Entity entityIn) {
@@ -243,7 +239,7 @@ public class EntityCrow extends TamableAnimal implements ITargetsDroppedItems {
     }
 
     public boolean isFood(ItemStack stack) {
-        return stack.getItem() == Items.PUMPKIN_SEEDS && this.isTame();
+        return stack.is(AMTagRegistry.CROW_BREEDABLES) && this.isTame();
     }
 
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
@@ -333,7 +329,7 @@ public class EntityCrow extends TamableAnimal implements ITargetsDroppedItems {
                 this.heal(4);
                 this.gameEvent(GameEvent.EAT);
                 this.playSound(SoundEvents.PARROT_EAT, this.getSoundVolume(), this.getVoicePitch());
-                if (seedThrowerID != null && this.getMainHandItem().getItem() == Items.PUMPKIN_SEEDS && !this.isTame()) {
+                if (seedThrowerID != null && this.getMainHandItem().is(AMTagRegistry.CROW_TAMEABLES) && !this.isTame()) {
                     if (getRandom().nextFloat() < 0.3F) {
                         this.setTame(true);
                         this.setCommand(1);
@@ -377,7 +373,7 @@ public class EntityCrow extends TamableAnimal implements ITargetsDroppedItems {
             if (checkPerchCooldown == 0) {
                 checkPerchCooldown = 50;
                 final BlockState below = this.getBlockStateOn();
-                if (below.getBlock() == Blocks.HAY_BLOCK) {
+                if (below.is(AMTagRegistry.CROW_HOME_BLOCKS)) {
                     this.heal(1);
                     this.level().broadcastEntityEvent(this, (byte) 67);
                     this.setPerchPos(this.getBlockPosBelowThatAffectsMyMovement());
@@ -386,7 +382,7 @@ public class EntityCrow extends TamableAnimal implements ITargetsDroppedItems {
             if (this.getCommand() == 3 && getPerchPos() != null && checkPerchCooldown == 0) {
                 checkPerchCooldown = 120;
                 final BlockState below = this.level().getBlockState(getPerchPos());
-                if (below.getBlock() != Blocks.HAY_BLOCK) {
+                if (below.is(AMTagRegistry.CROW_HOME_BLOCKS)) {
                     this.level().broadcastEntityEvent(this, (byte) 68);
                     this.setPerchPos(null);
                     this.setCommand(2);
@@ -594,7 +590,7 @@ public class EntityCrow extends TamableAnimal implements ITargetsDroppedItems {
 
     @Override
     public boolean canTargetItem(ItemStack stack) {
-        return isCrowEdible(stack) || this.isTame();
+        return stack != null && isCrowEdible(stack) || this.isTame();
     }
 
     private boolean isCrowEdible(ItemStack stack) {
@@ -614,7 +610,7 @@ public class EntityCrow extends TamableAnimal implements ITargetsDroppedItems {
         }
         this.setItemInHand(InteractionHand.MAIN_HAND, duplicate);
         Entity itemThrower = e.getOwner();
-        if (e.getItem().getItem() == Items.PUMPKIN_SEEDS && !this.isTame() && itemThrower != null) {
+        if (e.getItem().is(AMTagRegistry.CROW_TAMEABLES) && !this.isTame() && itemThrower != null) {
             seedThrowerID = itemThrower.getUUID();
         } else {
             seedThrowerID = null;

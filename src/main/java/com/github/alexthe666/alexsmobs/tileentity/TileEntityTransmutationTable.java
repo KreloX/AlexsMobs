@@ -14,7 +14,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -37,6 +36,8 @@ public class TileEntityTransmutationTable  extends BlockEntity {
     private final Map<UUID, TransmutationData> playerToData = new HashMap<>();
     private final ItemStack[] possiblities = new ItemStack[3];
     private static final Random RANDOM = new Random();
+
+    private UUID rerollPlayerUUID = null;
 
     public TileEntityTransmutationTable(BlockPos pos, BlockState state) {
         super(AMTileEntityRegistry.TRANSMUTATION_TABLE.get(), pos, state);
@@ -97,7 +98,7 @@ public class TileEntityTransmutationTable  extends BlockEntity {
     }
 
 
-    public void randomizeResults(Player player){
+    private void randomizeResults(Player player){
         rollPossiblity(player, 0);
         rollPossiblity(player, 1);
         rollPossiblity(player, 2);
@@ -115,6 +116,9 @@ public class TileEntityTransmutationTable  extends BlockEntity {
     }
 
     public void rollPossiblity(Player player, int i){
+        if(player == null || player.level().isClientSide || !(player.level() instanceof ServerLevel)){
+            return;
+        }
         ResourceLocation loot;
         int safeIndex = Mth.clamp(i, 0, 2);
         switch (safeIndex){
@@ -160,11 +164,22 @@ public class TileEntityTransmutationTable  extends BlockEntity {
         if(player instanceof ServerPlayer && totalTransmuteCount >= 1000){
             AMAdvancementTriggerRegistry.TRANSMUTE_1000_ITEMS.trigger((ServerPlayer)player);
         }
-        this.level.playSound(null, this.getBlockPos(), AMSoundRegistry.TRANSMUTE_ITEM.get(), SoundSource.BLOCKS, 1F, 0.9F + player.getRandom().nextFloat() * 0.2F);
-        this.randomizeResults(player);
+        setRerollPlayerUUID(player.getUUID());
     }
 
     public void tick() {
         ticksExisted++;
+        if(rerollPlayerUUID != null){
+            Player player = level.getPlayerByUUID(rerollPlayerUUID);
+            if(player != null){
+                this.level.playSound(null, this.getBlockPos(), AMSoundRegistry.TRANSMUTE_ITEM.get(), SoundSource.BLOCKS, 1F, 0.9F + player.getRandom().nextFloat() * 0.2F);
+                this.randomizeResults(player);
+            }
+            rerollPlayerUUID = null;
+        }
+    }
+
+    public void setRerollPlayerUUID(UUID uuid){
+        this.rerollPlayerUUID = uuid;
     }
 }

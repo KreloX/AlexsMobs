@@ -78,7 +78,6 @@ import net.minecraftforge.client.event.ComputeFovModifierEvent;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityEvent;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.EntityStruckByLightningEvent;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.living.*;
@@ -89,6 +88,7 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.event.village.WandererTradesEvent;
 import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.items.ItemHandlerHelper;
@@ -598,12 +598,14 @@ public class ServerEvents {
         if (event.getNewTarget() != null && event.getEntity() instanceof Mob mob) {
             if (mob.getMobType() == MobType.ARTHROPOD) {
                 if (event.getNewTarget().hasEffect(AMEffectRegistry.BUG_PHEROMONES.get()) && event.getEntity().getLastHurtByMob() != event.getNewTarget()) {
-                    mob.setTarget(null);
+                    event.setCanceled(true);
+                    return;
                 }
             }
             if (mob.getMobType() == MobType.UNDEAD && !mob.getType().is(AMTagRegistry.IGNORES_KIMONO)) {
                 if (event.getNewTarget().getItemBySlot(EquipmentSlot.CHEST).is(AMItemRegistry.UNSETTLING_KIMONO.get()) && event.getEntity().getLastHurtByMob() != event.getNewTarget()) {
-                    mob.setTarget(null);
+                    event.setCanceled(true);
+                    return;
                 }
             }
         }
@@ -616,30 +618,32 @@ public class ServerEvents {
             if (player.getEyeHeight() < player.getBbHeight() * 0.5D) {
                 player.refreshDimensions();
             }
-            final var attributes = entity.getAttribute(Attributes.MOVEMENT_SPEED);
-            if (player.getItemBySlot(EquipmentSlot.FEET).getItem() == AMItemRegistry.ROADDRUNNER_BOOTS.get()
-                || attributes.hasModifier(SAND_SPEED_BONUS)) {
-                final boolean sand = player.level().getBlockState(getDownPos(player.blockPosition(), player.level()))
-                    .is(BlockTags.SAND);
-                if (sand && !attributes.hasModifier(SAND_SPEED_BONUS)) {
-                    attributes.addPermanentModifier(SAND_SPEED_BONUS);
+            if(entity.getAttributes().hasAttribute(Attributes.MOVEMENT_SPEED)){
+                final var attributes = entity.getAttribute(Attributes.MOVEMENT_SPEED);
+                if (player.getItemBySlot(EquipmentSlot.FEET).getItem() == AMItemRegistry.ROADDRUNNER_BOOTS.get()
+                        || attributes.hasModifier(SAND_SPEED_BONUS)) {
+                    final boolean sand = player.level().getBlockState(getDownPos(player.blockPosition(), player.level()))
+                            .is(BlockTags.SAND);
+                    if (sand && !attributes.hasModifier(SAND_SPEED_BONUS)) {
+                        attributes.addPermanentModifier(SAND_SPEED_BONUS);
+                    }
+                    if (player.tickCount % 25 == 0
+                            && (player.getItemBySlot(EquipmentSlot.FEET).getItem() != AMItemRegistry.ROADDRUNNER_BOOTS.get()
+                            || !sand)
+                            && attributes.hasModifier(SAND_SPEED_BONUS)) {
+                        attributes.removeModifier(SAND_SPEED_BONUS);
+                    }
                 }
-                if (player.tickCount % 25 == 0
-                    && (player.getItemBySlot(EquipmentSlot.FEET).getItem() != AMItemRegistry.ROADDRUNNER_BOOTS.get()
-                        || !sand)
-                    && attributes.hasModifier(SAND_SPEED_BONUS)) {
-                    attributes.removeModifier(SAND_SPEED_BONUS);
-                }
-            }
-            if (player.getItemBySlot(EquipmentSlot.HEAD).getItem() == AMItemRegistry.FRONTIER_CAP.get()
-                || attributes.hasModifier(SNEAK_SPEED_BONUS)) {
-                final var shift = player.isShiftKeyDown();
-                if (shift && !attributes.hasModifier(SNEAK_SPEED_BONUS)) {
-                    attributes.addPermanentModifier(SNEAK_SPEED_BONUS);
-                }
-                if ((!shift || player.getItemBySlot(EquipmentSlot.HEAD).getItem() != AMItemRegistry.FRONTIER_CAP.get())
-                    && attributes.hasModifier(SNEAK_SPEED_BONUS)) {
-                    attributes.removeModifier(SNEAK_SPEED_BONUS);
+                if (player.getItemBySlot(EquipmentSlot.HEAD).getItem() == AMItemRegistry.FRONTIER_CAP.get()
+                        || attributes.hasModifier(SNEAK_SPEED_BONUS)) {
+                    final var shift = player.isShiftKeyDown();
+                    if (shift && !attributes.hasModifier(SNEAK_SPEED_BONUS)) {
+                        attributes.addPermanentModifier(SNEAK_SPEED_BONUS);
+                    }
+                    if ((!shift || player.getItemBySlot(EquipmentSlot.HEAD).getItem() != AMItemRegistry.FRONTIER_CAP.get())
+                            && attributes.hasModifier(SNEAK_SPEED_BONUS)) {
+                        attributes.removeModifier(SNEAK_SPEED_BONUS);
+                    }
                 }
             }
             if (player.getItemBySlot(EquipmentSlot.HEAD).getItem() == AMItemRegistry.SPIKED_TURTLE_SHELL.get()) {
@@ -770,9 +774,9 @@ public class ServerEvents {
         event.addListener(AlexsMobs.PROXY.getCapsidRecipeManager());
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onHarvestCheck(PlayerEvent.HarvestCheck event){
-        if(event.getEntity().isHolding(AMItemRegistry.GHOSTLY_PICKAXE.get()) && ItemGhostlyPickaxe.shouldStoreInGhost(event.getEntity(), event.getEntity().getMainHandItem())){
+        if(event.getEntity() != null && event.getEntity().isHolding(AMItemRegistry.GHOSTLY_PICKAXE.get()) && ItemGhostlyPickaxe.shouldStoreInGhost(event.getEntity(), event.getEntity().getMainHandItem())){
             //stops drops from being spawned
             event.setCanHarvest(false);
         }

@@ -1,13 +1,14 @@
 package com.github.alexthe666.alexsmobs.entity;
 
 import com.github.alexthe666.alexsmobs.entity.ai.*;
-import com.github.alexthe666.alexsmobs.item.AMItemRegistry;
 import com.github.alexthe666.alexsmobs.misc.AMPointOfInterestRegistry;
 import com.github.alexthe666.alexsmobs.misc.AMSoundRegistry;
+import com.github.alexthe666.alexsmobs.misc.AMTagRegistry;
 import com.github.alexthe666.alexsmobs.tileentity.TileEntityLeafcutterAnthill;
 import com.github.alexthe666.citadel.animation.Animation;
 import com.github.alexthe666.citadel.animation.AnimationHandler;
 import com.github.alexthe666.citadel.animation.IAnimatedEntity;
+import com.github.alexthe666.citadel.server.entity.pathfinding.raycoms.AdvancedPathNavigate;
 import com.google.common.base.Predicates;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -41,7 +42,6 @@ import net.minecraft.world.entity.ai.village.poi.PoiManager;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.BlockGetter;
@@ -92,7 +92,7 @@ public class EntityLeafcutterAnt extends Animal implements NeutralMob, IAnimated
     private int animationTick;
     private Animation currentAnimation;
     private boolean isUpsideDownNavigator;
-    private static final Ingredient TEMPTATION_ITEMS = Ingredient.of(AMItemRegistry.GONGYLIDIA.get());
+    private static final Ingredient TEMPTATION_ITEMS = Ingredient.of(AMTagRegistry.LEAFCUTTER_ANT_FOODSTUFFS);
     private int haveBabyCooldown = 0;
     public EntityLeafcutterAnt(EntityType type, Level world) {
         super(type, world);
@@ -120,7 +120,7 @@ public class EntityLeafcutterAnt extends Animal implements NeutralMob, IAnimated
     private void switchNavigator(boolean rightsideUp) {
         if (rightsideUp) {
             this.moveControl = new MoveControl(this);
-            this.navigation = new WallClimberNavigation(this, level());
+            this.navigation = new AdvancedPathNavigateNoTeleport(this, level(), AdvancedPathNavigate.MovementType.WALKING, true, false);
             this.isUpsideDownNavigator = false;
         } else {
             this.moveControl = new FlightMoveController(this, 0.6F, false);
@@ -206,9 +206,8 @@ public class EntityLeafcutterAnt extends Animal implements NeutralMob, IAnimated
 
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
-        Item item = itemstack.getItem();
         InteractionResult type = super.mobInteract(player, hand);
-        if(type != InteractionResult.SUCCESS && item == AMItemRegistry.GONGYLIDIA.get()){
+        if(type != InteractionResult.SUCCESS && itemstack.is(AMTagRegistry.LEAFCUTTER_ANT_FOODSTUFFS)){
             if(isQueen() && haveBabyCooldown == 0){
                 int babies = 1 + random.nextInt(1);
                 pacifyAllNearby();
@@ -686,7 +685,6 @@ public class EntityLeafcutterAnt extends Animal implements NeutralMob, IAnimated
         }
 
         public void start() {
-            this.hivePos = null;
             this.searchCooldown = 20;
             this.approachTime = 0;
             moveToCooldown = 10 + random.nextInt(10);

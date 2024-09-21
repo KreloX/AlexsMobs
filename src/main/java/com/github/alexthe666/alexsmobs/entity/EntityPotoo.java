@@ -2,6 +2,7 @@ package com.github.alexthe666.alexsmobs.entity;
 
 import com.github.alexthe666.alexsmobs.AlexsMobs;
 import com.github.alexthe666.alexsmobs.config.AMConfig;
+import com.github.alexthe666.alexsmobs.entity.ai.AdvancedPathNavigateNoTeleport;
 import com.github.alexthe666.alexsmobs.entity.ai.FlightMoveController;
 import com.github.alexthe666.alexsmobs.entity.util.Maths;
 import com.github.alexthe666.alexsmobs.item.AMItemRegistry;
@@ -9,6 +10,7 @@ import com.github.alexthe666.alexsmobs.message.MessageMosquitoMountPlayer;
 import com.github.alexthe666.alexsmobs.misc.AMBlockPos;
 import com.github.alexthe666.alexsmobs.misc.AMSoundRegistry;
 import com.github.alexthe666.alexsmobs.misc.AMTagRegistry;
+import com.github.alexthe666.citadel.server.entity.pathfinding.raycoms.AdvancedPathNavigate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -86,7 +88,7 @@ public class EntityPotoo extends Animal implements IFalconry {
 
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.goalSelector.addGoal(1, new TemptGoal(this, 1.0D, Ingredient.of(AMTagRegistry.INSECT_ITEMS), false));
+        this.goalSelector.addGoal(1, new TemptGoal(this, 1.0D, Ingredient.of(AMTagRegistry.POTOO_BREEDABLES), false));
         this.goalSelector.addGoal(2, new BreedGoal(this, 1.0D));
         this.goalSelector.addGoal(3, new PanicGoal(this, 1D));
         this.goalSelector.addGoal(4, new AIPerch());
@@ -98,11 +100,11 @@ public class EntityPotoo extends Animal implements IFalconry {
     private void switchNavigator(boolean onLand) {
         if (onLand) {
             this.moveControl = new MoveControl(this);
-            this.navigation = new GroundPathNavigation(this, level());
+            this.navigation = new AdvancedPathNavigateNoTeleport(this, level(), false);
             this.isLandNavigator = true;
         } else {
             this.moveControl = new FlightMoveController(this, 0.6F, false, true);
-            this.navigation = new FlyingPathNavigation(this, level()) {
+            this.navigation = new AdvancedPathNavigateNoTeleport(this, level(), AdvancedPathNavigate.MovementType.FLYING, false, false) {
                 public boolean isStableDestination(BlockPos pos) {
                     return !this.level.getBlockState(pos.below(2)).isAir();
                 }
@@ -508,7 +510,7 @@ public class EntityPotoo extends Animal implements IFalconry {
     }
 
     public boolean isFood(ItemStack stack) {
-        return stack.is(AMTagRegistry.INSECT_ITEMS);
+        return stack.is(AMTagRegistry.POTOO_BREEDABLES);
     }
 
     @Override

@@ -52,7 +52,9 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @OnlyIn(Dist.CLIENT)
 @Mod.EventBusSubscriber(modid = AlexsMobs.MODID, value = Dist.CLIENT)
@@ -101,6 +103,7 @@ public class ClientProxy extends CommonProxy {
     }
 
     public void clientInit() {
+        MinecraftForge.EVENT_BUS.register(new ClientEvents());
         initRainbowBuffers();
         ItemRenderer itemRendererIn = Minecraft.getInstance().getItemRenderer();
         EntityRenderers.register(AMEntityRegistry.GRIZZLY_BEAR.get(), RenderGrizzlyBear::new);
@@ -225,7 +228,6 @@ public class ClientProxy extends CommonProxy {
         EntityRenderers.register(AMEntityRegistry.BLUE_JAY.get(), RenderBlueJay::new);
         EntityRenderers.register(AMEntityRegistry.CAIMAN.get(), RenderCaiman::new);
         EntityRenderers.register(AMEntityRegistry.TRIOPS.get(), RenderTriops::new);
-        MinecraftForge.EVENT_BUS.register(new ClientEvents());
         try {
             ItemProperties.register(AMItemRegistry.BLOOD_SPRAYER.get(), new ResourceLocation("empty"), (stack, p_239428_1_, p_239428_2_, j) -> {
                 return !ItemBloodSprayer.isUsable(stack) || p_239428_2_ instanceof Player && ((Player) p_239428_2_).getCooldowns().isOnCooldown(AMItemRegistry.BLOOD_SPRAYER.get()) ? 1.0F : 0.0F;

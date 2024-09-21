@@ -3,7 +3,6 @@ package com.github.alexthe666.alexsmobs.client.render;
 import com.github.alexthe666.alexsmobs.entity.EntityVoidPortal;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.VertexMultiConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -61,7 +60,7 @@ public class RenderVoidPortal extends EntityRenderer<EntityVoidPortal> {
         }else{
             tex = getIdleTexture(entityIn.tickCount % 9, shattered);
         }
-        VertexConsumer ivertexbuilder = shattered ? VertexMultiConsumer.create(bufferIn.getBuffer(AMRenderTypes.STATIC_PORTAL), bufferIn.getBuffer(RenderType.entityCutoutNoCull(tex))) : bufferIn.getBuffer(AMRenderTypes.getFullBright(tex));
+        VertexConsumer ivertexbuilder = shattered ? AMRenderTypes.createMergedVertexConsumer(bufferIn.getBuffer(AMRenderTypes.STATIC_PORTAL), bufferIn.getBuffer(RenderType.entityCutoutNoCull(tex))) : bufferIn.getBuffer(AMRenderTypes.getFullBright(tex));
         renderArc(matrixStackIn, ivertexbuilder);
     }
     private void renderArc(PoseStack matrixStackIn, VertexConsumer ivertexbuilder) {

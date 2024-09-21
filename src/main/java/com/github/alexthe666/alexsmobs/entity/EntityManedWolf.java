@@ -8,6 +8,7 @@ import com.github.alexthe666.alexsmobs.entity.util.Maths;
 import com.github.alexthe666.alexsmobs.message.MessageStartDancing;
 import com.github.alexthe666.alexsmobs.misc.AMPointOfInterestRegistry;
 import com.github.alexthe666.alexsmobs.misc.AMSoundRegistry;
+import com.github.alexthe666.alexsmobs.misc.AMTagRegistry;
 import com.github.alexthe666.alexsmobs.tileentity.TileEntityLeafcutterAnthill;
 import com.google.common.base.Predicates;
 import net.minecraft.ChatFormatting;
@@ -28,6 +29,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
@@ -39,7 +41,6 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -59,7 +60,7 @@ public class EntityManedWolf extends Animal implements ITargetsDroppedItems, IDa
     private static final EntityDataAccessor<Float> EAR_YAW = SynchedEntityData.defineId(EntityManedWolf.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Boolean> DANCING = SynchedEntityData.defineId(EntityManedWolf.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> SHAKING_TIME = SynchedEntityData.defineId(EntityManedWolf.class, EntityDataSerializers.INT);
-    private static final Ingredient allFoods = Ingredient.of(Items.APPLE, Items.RABBIT, Items.COOKED_RABBIT, Items.CHICKEN, Items.COOKED_CHICKEN);
+    private static final Ingredient allFoods = Ingredient.fromValues(Stream.of(new Ingredient.TagValue(AMTagRegistry.MANED_WOLF_BREEDABLES), new Ingredient.TagValue(AMTagRegistry.MANED_WOLF_STENCH_FOODS)));
     public float prevEarPitch;
     public float prevEarYaw;
     public float prevDanceProgress;
@@ -147,7 +148,7 @@ public class EntityManedWolf extends Animal implements ITargetsDroppedItems, IDa
         if (this.getShakingTime() % 5 == 0) {
             List<Animal> list = this.level().getEntitiesOfClass(Animal.class, this.getBoundingBox().inflate(16, 8, 16));
             for (Animal e : list) {
-                if(!(e instanceof EntityManedWolf)){
+                if(!(e instanceof EntityManedWolf) && !(e instanceof TamableAnimal tamedMob && tamedMob.isInSittingPose())){
                     e.setTarget(null);
                     e.setLastHurtByMob(null);
                     Vec3 vec = LandRandomPos.getPosTowards(e, 20, 7, this.position());
@@ -205,7 +206,7 @@ public class EntityManedWolf extends Animal implements ITargetsDroppedItems, IDa
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
         InteractionResult type = super.mobInteract(player, hand);
-        if (itemstack.is(Items.APPLE) && !this.isShaking() && this.getMainHandItem().isEmpty()) {
+        if (itemstack.is(AMTagRegistry.MANED_WOLF_STENCH_FOODS) && !this.isShaking() && this.getMainHandItem().isEmpty()) {
             this.usePlayerItem(player, hand, itemstack);
             eatItemEffect(itemstack);
             this.setShakingTime(100 + random.nextInt(30));
@@ -309,7 +310,7 @@ public class EntityManedWolf extends Animal implements ITargetsDroppedItems, IDa
     }
 
     public boolean isFood(ItemStack stack) {
-        return !stack.is(Items.APPLE) && allFoods.test(stack);
+        return !stack.is(AMTagRegistry.MANED_WOLF_STENCH_FOODS) && allFoods.test(stack);
     }
 
     public void travel(Vec3 vec3d) {
@@ -330,7 +331,7 @@ public class EntityManedWolf extends Animal implements ITargetsDroppedItems, IDa
     @Override
     public void onGetItem(ItemEntity e) {
         eatItemEffect(e.getItem());
-        if (e.getItem().is(Items.APPLE)) {
+        if (e.getItem().is(AMTagRegistry.MANED_WOLF_STENCH_FOODS)) {
             this.setShakingTime(100 + random.nextInt(30));
         }
     }

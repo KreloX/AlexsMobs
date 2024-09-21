@@ -2,7 +2,6 @@ package com.github.alexthe666.alexsmobs.entity;
 
 import com.github.alexthe666.alexsmobs.AlexsMobs;
 import com.github.alexthe666.alexsmobs.entity.util.AnacondaPartIndex;
-import com.github.alexthe666.alexsmobs.entity.util.Maths;
 import com.github.alexthe666.alexsmobs.message.MessageHurtMultipart;
 import com.github.alexthe666.alexsmobs.misc.AMBlockPos;
 import com.google.common.collect.ImmutableList;
@@ -376,6 +375,12 @@ public class EntityAnacondaPart extends LivingEntity implements IHurtableMultipa
     @Override
     public boolean isPickable() {
         return true;
+    }
+
+    @Nullable
+    public ItemStack getPickResult() {
+        Entity parent = this.getParent();
+        return parent != null ? parent.getPickResult() : ItemStack.EMPTY;
     }
 
     public int getBodyIndex() {

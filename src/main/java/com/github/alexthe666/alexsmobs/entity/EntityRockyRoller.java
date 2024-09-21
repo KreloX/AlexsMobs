@@ -2,10 +2,12 @@ package com.github.alexthe666.alexsmobs.entity;
 
 import com.github.alexthe666.alexsmobs.config.AMConfig;
 import com.github.alexthe666.alexsmobs.effect.AMEffectRegistry;
+import com.github.alexthe666.alexsmobs.entity.ai.AdvancedPathNavigateNoTeleport;
 import com.github.alexthe666.alexsmobs.entity.ai.GroundPathNavigatorWide;
 import com.github.alexthe666.alexsmobs.entity.ai.MovementControllerCustomCollisions;
 import com.github.alexthe666.alexsmobs.entity.util.Maths;
 import com.github.alexthe666.alexsmobs.misc.AMSoundRegistry;
+import com.github.alexthe666.alexsmobs.misc.AMTagRegistry;
 import com.github.alexthe666.citadel.server.entity.collision.ICustomCollisions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -72,7 +74,7 @@ public class EntityRockyRoller extends Monster implements ICustomCollisions {
 
 
     public static boolean checkRockyRollerSpawnRules(EntityType<? extends Monster> animal, ServerLevelAccessor worldIn, MobSpawnType reason, BlockPos pos, RandomSource random) {
-        return worldIn.getDifficulty() != Difficulty.PEACEFUL && isDarkEnoughToSpawn(worldIn, pos, random) && (worldIn.getBlockState(pos.below()).is(Blocks.POINTED_DRIPSTONE) || worldIn.getBlockState(pos.below()).isSolid() || worldIn.getBlockState(pos.below()).is(Blocks.DRIPSTONE_BLOCK));
+        return worldIn.getDifficulty() != Difficulty.PEACEFUL && isDarkEnoughToSpawn(worldIn, pos, random) && (worldIn.getBlockState(pos.below()).is(AMTagRegistry.ROCKY_ROLLER_SPAWNS) || worldIn.getBlockState(pos.below()).isSolid());
     }
 
 
@@ -317,9 +319,8 @@ public class EntityRockyRoller extends Monster implements ICustomCollisions {
     }
 
     public boolean hurt(DamageSource dmg, float amount) {
-        if (!this.isMoving() && !dmg.is(DamageTypes.MAGIC) && dmg.getDirectEntity() instanceof LivingEntity) {
-            LivingEntity livingentity = (LivingEntity) dmg.getDirectEntity();
-            if (!dmg.is(DamageTypes.EXPLOSION)) {
+        if (!this.isMoving() && !dmg.is(DamageTypes.MAGIC) && dmg.getDirectEntity() instanceof LivingEntity livingentity && !(livingentity instanceof EntityRockyRoller)) {
+            if (!dmg.is(DamageTypes.EXPLOSION) && !livingentity.hurtMarked) {
                 livingentity.hurt(damageSources().thorns(this), 2.0F);
             }
         }
@@ -450,10 +451,10 @@ public class EntityRockyRoller extends Monster implements ICustomCollisions {
         }
     }
 
-    static class Navigator extends GroundPathNavigatorWide {
+    static class Navigator extends AdvancedPathNavigateNoTeleport {
 
         public Navigator(Mob mob, Level world) {
-            super(mob, world, 0.75F);
+            super(mob, world, true);
         }
 
         protected PathFinder createPathFinder(int i) {
